@@ -5,6 +5,11 @@ using UnityEngine;
 
 public class RocketShip : MonoBehaviour {
 
+    // Setup default reaction controll system (rcs)
+    [SerializeField] float rcsThrust = 100f;
+    [SerializeField] float mainThrust = 100f;
+
+
     Rigidbody rigidBody;
     AudioSource audioSource;
 
@@ -21,27 +26,58 @@ public class RocketShip : MonoBehaviour {
         ProcessInput();
 	}
 
+    void OnCollisionEnter (Collision collision)
+    {
+        if (collision.gameObject.tag == "Friendly") {
+            print("You're Ok");
+        }
+
+        else {
+            print("You're Dead");
+        }
+    }
+
     private void ProcessInput()
     {
-        if (Input.GetKey(KeyCode.Space)) {
-            rigidBody.AddRelativeForce(Vector3.up);
-            if (!audioSource.isPlaying) { // so the audio dosen't layer on 
-                                          //top of eachother.
+        Thrust();
+        Rotate();
+
+    }
+
+    private void Thrust()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            rigidBody.AddRelativeForce(Vector3.up * mainThrust);
+            if (!audioSource.isPlaying)
+            { // so the audio dosen't layer on 
+              //top of eachother.
                 audioSource.Play();
             }
         }
 
-        else {
+        else
+        {
             audioSource.Pause();
         }
+    }
 
-        if (Input.GetKey(KeyCode.A)) {
-            transform.Rotate(Vector3.forward);
+    private void Rotate()
+    {
+        rigidBody.freezeRotation = true; // take manual control of rotation
+
+        float rotationThisFrame = rcsThrust * Time.deltaTime;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            transform.Rotate(Vector3.forward * rotationThisFrame);
         }
 
-        else if (Input.GetKey(KeyCode.D)) {
-            transform.Rotate(-Vector3.forward);
+        else if (Input.GetKey(KeyCode.D))
+        {
+            transform.Rotate(-Vector3.forward * rotationThisFrame);
         }
 
+        rigidBody.freezeRotation = false; // resume physics control of rotation
     }
 }

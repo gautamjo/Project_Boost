@@ -10,16 +10,23 @@ public class RocketShip : MonoBehaviour {
     [SerializeField] float rcsThrust = 100f;
     // setup default main thrust system
     [SerializeField] float mainThrust = 100f;
+    [SerializeField] float levelLoadDelay = 2f;
     // Setup audio clip
     [SerializeField] AudioClip mainEngine;
-    [SerializeField] AudioClip Success;
-    [SerializeField] AudioClip Death;
+    [SerializeField] AudioClip success;
+    [SerializeField] AudioClip death;
+    // Setup ParticleSystem
+    [SerializeField] ParticleSystem mainEngineParticles;
+    [SerializeField] ParticleSystem successParticles;
+    [SerializeField] ParticleSystem deathParticles;
 
     Rigidbody rigidBody;
     AudioSource audioSource;
 
     enum State {Alive, Dying, Transcending}
     State state = State.Alive;
+
+    bool collisionsDisabled = false;
 
 	// Use this for initialization
 	void Start () {
@@ -35,26 +42,36 @@ public class RocketShip : MonoBehaviour {
         if (state == State.Alive) {
             ProcessInput();
         }
+
+        // only if debug in on
+        if (Debug.isDebugBuild) {
+            RespondToDebugKeys();
+        }
 	}
 
     void OnCollisionEnter (Collision collision)
     {
-        if (state != State.Alive) {
+        if (state != State.Alive || collisionsDisabled) {
             return;
         }
 
-        if (collision.gameObject.tag == "Friendly") {
-            //print("You're Ok");
-        }
+        else {
 
-        else if (collision.gameObject.tag == "Finish")
-        {
-            StartSuccessSequence();
-        }
+            if (collision.gameObject.tag == "Friendly")
+            {
+                //print("You're Ok");
+            }
 
-        else
-        {
-            StartDeathSequence();
+            else if (collision.gameObject.tag == "Finish")
+            {
+                StartSuccessSequence();
+            }
+
+            else
+            {
+                StartDeathSequence();
+            }
+
         }
     }
 
@@ -62,16 +79,18 @@ public class RocketShip : MonoBehaviour {
     {
         state = State.Transcending;
         audioSource.Stop();
-        audioSource.PlayOneShot(Success);
-        Invoke("LoadNextScene", 1f); // parameterize time
+        audioSource.PlayOneShot(success);
+        successParticles.Play();
+        Invoke("LoadNextScene", levelLoadDelay);
     }
 
     private void StartDeathSequence()
     {
         state = State.Dying;
         audioSource.Stop();
-        audioSource.PlayOneShot(Death);
-        Invoke("LoadFirstLevel", 1f); // parameterize time 
+        audioSource.PlayOneShot(death);
+        deathParticles.Play();
+        Invoke("LoadFirstLevel", levelLoadDelay); 
     }
 
     private void LoadNextScene()
@@ -100,18 +119,22 @@ public class RocketShip : MonoBehaviour {
 
         else
         {
-            audioSource.Pause();
+            audioSource.Stop();
+            mainEngineParticles.Stop();
         }
     }
 
     private void ApplyThrust()
     {
-        rigidBody.AddRelativeForce(Vector3.up * mainThrust);
+        rigidBody.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
+
         if (!audioSource.isPlaying)
         { // so the audio dosen't layer on 
           //top of eachother.
             audioSource.PlayOneShot(mainEngine);
         }
+
+        mainEngineParticles.Play();
     }
 
     private void Rotate()
@@ -131,5 +154,15 @@ public class RocketShip : MonoBehaviour {
         }
 
         rigidBody.freezeRotation = false; // resume physics control of rotation
+    }
+
+    private void RespondToDebugKeys() {
+        if (Input.GetKeyDown(KeyCode.L)) {
+            LoadNextScene();
+        }
+
+        else if (Input.GetKeyDown(KeyCode.C)) {
+            collisionsDisabled = !collisionsDisabled;
+        }
     }
 }

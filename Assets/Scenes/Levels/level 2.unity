@@ -5492,8 +5492,11 @@ MonoBehaviour:
   rcsThrust: 250
   mainThrust: 50
   mainEngine: {fileID: 8300000, guid: a9a7c3bd644a34e30ac3000960352346, type: 3}
-  Success: {fileID: 8300000, guid: dc3941bcf0f35480daa3ecefa388dcc9, type: 3}
-  Death: {fileID: 8300000, guid: 81ccf42e8d23b4b5c874c2c6a0d72bd1, type: 3}
+  success: {fileID: 8300000, guid: dc3941bcf0f35480daa3ecefa388dcc9, type: 3}
+  death: {fileID: 8300000, guid: 81ccf42e8d23b4b5c874c2c6a0d72bd1, type: 3}
+  mainEngineParticles: {fileID: 0}
+  successParticles: {fileID: 0}
+  deathParticles: {fileID: 0}
 --- !u!82 &1705610363
 AudioSource:
   m_ObjectHideFlags: 0
